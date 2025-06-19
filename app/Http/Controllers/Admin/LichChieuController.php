@@ -9,6 +9,8 @@ use App\Models\Movie;
 use App\Models\PhongChieu;
 use App\Models\TrangThaiGhe;
 use Carbon\Carbon; 
+use Illuminate\Support\Facades\DB;
+
 
 class LichChieuController extends Controller
 {
@@ -153,50 +155,48 @@ class LichChieuController extends Controller
      * Update the specified resource in storage.
      */
     public function update(Request $request, string $id)
-    {
-        $request->validate([  
-            'IDPHIM' => 'required|exists:phim,IDPHIM',  
-            'XUATCHIEU' => 'required|date|after:' . now(),  
-            'IDPHONGCHIEU' => 'required|exists:phongchieu,IDPHONGCHIEU',  
-            'status' => 'required|boolean',  
-        ], [  
-            'XUATCHIEU.after' => 'Thời gian xuất chiếu phải sau thời điểm hiện tại.',  
-        ]); 
-    
-        $xuatChieuTime = Carbon::parse($request->XUATCHIEU);
- 
-        $existingLichChieu = LichChieu::where('IDPHONGCHIEU', $request->IDPHONGCHIEU)  
-        ->where('XUATCHIEU', $request->$xuatChieuTime)  
-        ->first();  
+{
+    $request->validate([
+        'IDPHIM' => 'required|exists:phim,IDPHIM',
+        'XUATCHIEU' => 'required|date|after:' . now(),
+        'IDPHONGCHIEU' => 'required|exists:phongchieu,IDPHONGCHIEU',
+        'status' => 'required|boolean',
+    ], [
+        'XUATCHIEU.after' => 'Thời gian xuất chiếu phải sau thời điểm hiện tại.',
+    ]);
 
-        if ($existingLichChieu) {  
-            return back()->withErrors(['XUATCHIEU' => 'Lịch chiếu này đã tồn tại tại phòng chiếu này vào thời gian này.']);  
-        }
+    $xuatChieuTime = Carbon::parse($request->XUATCHIEU)->format('Y-m-d H:i:s');
 
-        $currentDateTime = now();  
+    $existingLichChieu = LichChieu::where('IDPHONGCHIEU', $request->IDPHONGCHIEU)
+        ->where('XUATCHIEU', $xuatChieuTime)
+        ->where('IDLICHCHIEU', '!=', $id)
+        ->first();
 
-        $conflictLichChieu = LichChieu::where('IDPHONGCHIEU', $request->IDPHONGCHIEU)  
-            ->where(function ($query) use ($xuatChieuTime) {  
-                $query->whereBetween('XUATCHIEU', [  
-                    $xuatChieuTime->copy()->subHours(5),   
-                    $xuatChieuTime->copy()->addHours(5)
-                ]);  
-            })  
-            ->first();  
+    if ($existingLichChieu) {
+        return back()->withErrors(['XUATCHIEU' => 'Lịch chiếu này đã tồn tại tại phòng chiếu này vào thời gian này.']);
+    }
 
-        if ($conflictLichChieu) {  
-            return back()->withErrors(['XUATCHIEU' => 'Xuất chiếu phải cách xa các lịch chiếu khác ít nhất 5 giờ.']);  
-        } 
+    DB::beginTransaction();
+    try {
+        // ❌ Xoá ghế cũ của lịch chiếu này (tránh trùng khóa)
+        TrangThaiGhe::where('IDLICHCHIEU', $id)->delete();
 
+        // ✅ Cập nhật lịch chiếu
         $lichChieu = LichChieu::findOrFail($id);
         $lichChieu->IDPHIM = $request->IDPHIM;
         $lichChieu->XUATCHIEU = $request->XUATCHIEU;
         $lichChieu->IDPHONGCHIEU = $request->IDPHONGCHIEU;
         $lichChieu->status = $request->status;
         $lichChieu->save();
-    
+
+        DB::commit();
         return redirect()->route('lichchieu.index')->with('success', 'Lịch chiếu đã được cập nhật thành công!');
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return back()->withErrors(['error' => 'Đã xảy ra lỗi: ' . $e->getMessage()]);
     }
+} 
+
 
     /**
      * Remove the specified resource from storage.

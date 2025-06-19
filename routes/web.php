@@ -92,7 +92,7 @@ Route::get('/phongchieu', [PhongChieuController::class, 'index'])->name('phongch
 Route::get('/phongchieu/create', [PhongChieuController::class, 'create'])->name('phongchieu.create');  
 Route::post('/phongchieu', [PhongChieuController::class, 'store'])->name('phongchieu.store');
 Route::get('/phongchieu/{id}/edit', [PhongChieuController::class, 'edit'])->name('phongchieu.edit');  
-Route::post('/phongchieu/{id}', [PhongChieuController::class, 'update'])->name('phongchieu.update');
+Route::put('/phongchieu/{id}', [PhongChieuController::class, 'update'])->name('phongchieu.update');
 Route::delete('/phongchieu/{id}', [PhongChieuController::class, 'destroy'])->name('phongchieu.destroy');
 Route::get('/phongchieu/inactive', [PhongChieuController::class, 'show'])->name('phongchieu.show');
 Route::delete('/phongchieu/kichHoat/{id}', [PhongChieuController::class, 'kichHoat'])->name('phongchieu.kichHoat');

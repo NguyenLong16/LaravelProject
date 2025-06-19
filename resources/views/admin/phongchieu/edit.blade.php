@@ -23,7 +23,7 @@
 
         <form action="{{ route('phongchieu.update', $phongChieu->IDPHONGCHIEU) }}" method="POST">  
             @csrf  
-            @method('POST') <!-- Nếu bạn đang xử lý HTTP POST -->  
+            @method('PUT') <!-- Nếu bạn đang xử lý HTTP POST -->  
             
             <div class="form-group">  
                 <label for="TENPHONGCHIEU">Tên Phòng Chiếu</label>  

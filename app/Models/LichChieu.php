@@ -28,10 +28,10 @@ class LichChieu extends Model
         return $this->belongsTo(Movie::class, 'IDPHIM', 'IDPHIM');
     }
 
-    public function seats()  
-    {  
-        return $this->hasMany(TrangThaiGhe::class, 'IDGHE', 'IDLICHCHIEU'); // Adjust the foreign keys based on your actual relationship  
-    } 
+    public function seats()
+    {
+        return $this->hasMany(TrangThaiGhe::class, 'IDLICHCHIEU', 'IDLICHCHIEU');
+    }
 
     public function ves()  
     {  
