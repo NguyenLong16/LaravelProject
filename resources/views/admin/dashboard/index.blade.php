@@ -23,6 +23,10 @@
             background-color: #6d7171; /* Màu khi hover */
             box-shadow: 0 4px 8px #6d7171;
         }
+
+        .menu {
+            margin-bottom: 50px;
+        }
     </style>
 </head>
 <body>
